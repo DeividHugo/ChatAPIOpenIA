@@ -3,16 +3,14 @@ const chatMessager = document.querySelector('#chatMessager')
 
 chatMessager.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') { 
-        sendMessage()
+        runViewer()
     }
 });
 
-async function sendMessage(){
+async function runViewer(){
     chatMessager.disabled = 'true';
     const selfMessage = getSelfMessage(chatMessager);
-    showMessage('Eu', selfMessage, 'teal', 'lighten-1', 'offset-m7');
     const answerMessage = await getAnswerMessage(selfMessage);
-    showMessage('GPT', answerMessage, 'grey', 'darken-3')
     chatMessager.disabled = '';
 }
 
@@ -28,7 +26,9 @@ function showMessage(author, message, color, variety, position=null){
 
     const authorSpan = document.createElement('span');
     authorSpan.classList.add('white-text');
-    authorSpan.innerHTML = `<strong>${author}:</strong>`;
+    const strongAuthor = document.createElement('strong');
+    strongAuthor.textContent = `${author}: `;
+    authorSpan.appendChild(strongAuthor);
 
     const nextLine = document.createElement('br');
 
@@ -44,15 +44,14 @@ function showMessage(author, message, color, variety, position=null){
     chatViewer.appendChild(divRow);
 }
 
-
 function getSelfMessage(self){
-    message = self.value;
+    selfMessage = self.value;
     self.value = '';
-    return message;
+    showMessage('Eu', selfMessage, 'teal', 'lighten-1', 'offset-m7');
 }
 
 async function getAnswerMessage(selfMessage) {
-    const OPEN_API_KEY = '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';
+    const OPEN_API_KEY = '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';
     const response = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
         headers: {
@@ -75,8 +74,10 @@ async function getAnswerMessage(selfMessage) {
     if (json.choices?.[0].text) {
         const text = json.choices[0].text || 'No answer';
         answerMessage = text;
+        showMessage('GPT', answerMessage, 'grey', 'darken-3');
     } else if (json.error?.message) {
-        answerMessage = `Error: ${json.error.message}`;
+        answerMessage = json.error.message;
+        showMessage('Error', answerMessage, 'red', 'darken-3');
     }
 
     return answerMessage;
